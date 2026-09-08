@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(echo \"=== INSTALL EXIT: $? ===\")",
+      "Bash(node -e \"console.log\\('express version:', require\\('express/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\('react', require\\('react/package.json'\\).version\\)\")",
+      "Bash(git config *)",
+      "Bash(echo \"user.name  = $\\(git config --global user.name 2>/dev/null || echo '<NOT SET>'\\)\")",
+      "Bash(echo \"user.email = $\\(git config --global user.email 2>/dev/null || echo '<NOT SET>'\\)\")",
+      "Bash(npm -v)",
+      "Bash(echo \"npm:  $\\(npm -v\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/@vitejs/plugin-react/package.json'\\); console.log\\('version:', p.version\\); console.log\\('peers:', JSON.stringify\\(p.peerDependencies\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/vite/package.json'\\); console.log\\('version:', p.version\\); console.log\\('engines:', JSON.stringify\\(p.engines\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(git rev-list *)",
+      "Bash(git check-ignore *)",
+      "Bash(awk \"/^export const inventory/,/^\\\\]/\" src/data/demoData.js)",
+      "Bash(awk 'NR>=155 && NR<=640' src/index.css)",
+      "Bash(node -e \"const L=require\\('/Users/mdsahil/Documents/polar-expedition-prototype/node_modules/lucide-react/dist/cjs/lucide-react.js'\\); ['ShieldCheck','Compass','Truck','Microscope','LogOut','Lock','Eye','ArrowRight','KeyRound','Radio','ShieldAlert','UserCircle2'].forEach\\(n=>console.log\\(n, typeof L[n]\\)\\)\")",
+      "Bash(node -e \"const L=require\\('/Users/mdsahil/Documents/polar-expedition-prototype/node_modules/lucide-react/dist/cjs/lucide-react.js'\\); ['Check','Minus','X','Loader2','Lock','LogOut','ShieldCheck','ArrowRight','Eye'].forEach\\(n=>console.log\\(n, typeof L[n]\\)\\)\")",
+      "Bash(node -p \"require\\('./node_modules/@supabase/supabase-js/package.json'\\).version\")",
+      "Bash(grep -rnE \"supabase\\\\.co|eyJ[A-Za-z0-9_-]{10,}\" src/ supabase/ scripts/)",
+      "Bash(grep -v \"^\\\\.$\\\\|^\\\\.\\\\.$\\\\|node_modules\\\\|^\\\\.git$\\\\|dist\")",
+      "Bash(node -e \"const p=require\\('./node_modules/vite/package.json'\\); console.log\\('vite', p.version, 'engines:', JSON.stringify\\(p.engines\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/react/package.json'\\); console.log\\('react', p.version\\)\")",
+      "Bash(grep -nE \"^#{1,3} \" README.md)"
+    ]
+  }
+}

@@ -1,0 +1,1079 @@
+/* ============================================================
+   POLAR COMMAND CENTER — design system
+   ============================================================
+
+   These three @tailwind lines pull in Tailwind's utility classes.
+   Do not remove them.
+
+   Everything below them is our own design system, ported from the
+   v1 prototype (legacy/public/styles.css) so the look is preserved.
+
+   HOW THE STYLING WORKS IN THIS PROJECT (two tools, on purpose):
+     1. Tailwind utility classes    -> layout. e.g. "flex gap-4 p-5"
+     2. Our own component classes   -> appearance. e.g. "card" "badge"
+
+   That split keeps the JSX readable. You get short layout classes
+   instead of thirty utilities glued together on every card.
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- 1. TOKENS ----------
+   Every colour and font in the app comes from this one block.
+   Change a value here and it updates everywhere. This is why the
+   app looks consistent instead of looking like a template.
+
+   Subject: a field-operations command console for polar logistics.
+   Palette: deep glacier navy surfaces, ice-teal accent,
+            signal orange for alerts, amber for warnings.
+   Type:    Oswald   - condensed display, console headers
+            Inter    - body and UI text
+            JetBrains Mono - data: IDs, timestamps, coordinates, quantities
+*/
+:root {
+  /* Surfaces, darkest to lightest */
+  --navy-950: #08111a;
+  --navy-900: #0c1a26;
+  --navy-850: #102331;
+  --navy-800: #152b3b;
+  --navy-700: #1c3a4e;
+  --navy-600: #2a4e64;
+  --line: #223d4c;
+  --line-soft: #18303d;
+
+  /* Accent + signal colours */
+  --ice: #6fd6d6;
+  --ice-dim: #3c7a80;
+  --orange: #ff6a3d;
+  --amber: #e8b84b;
+  --green: #4fc98a;
+  --red: #ff5a5a;
+  --blue: #5aa9ff;
+  --violet: #a98bff;
+
+  /* Text, highest to lowest emphasis */
+  --ink-hi: #eaf3f5;
+  --ink-mid: #a5bdc7;
+  --ink-low: #6a8593;
+
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius: 3px;
+}
+
+/* ---------- 2. BASE ---------- */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* min-height, NOT height. With `height: 100%` the app would be locked to
+     exactly one screen tall and every longer page would spill out of its
+     own box — which quietly breaks anything that needs a real height to
+     measure against, such as the Leaflet map container. */
+  html,
+  body {
+    min-height: 100%;
+  }
+  #root {
+    min-height: 100vh;
+  }
+
+  body {
+    background-color: var(--navy-950);
+    color: var(--ink-hi);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+
+    /* A faint survey grid. Reads as "operations console" without shouting.
+       Note: deliberately NOT background-attachment: fixed. A fixed
+       background forces the browser to repaint the entire page on every
+       scroll frame, and because this grid is uniform it would look
+       identical anyway. */
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(111, 214, 214, 0.05), transparent 42%),
+      repeating-linear-gradient(
+        0deg,
+        rgba(111, 214, 214, 0.022) 0px,
+        rgba(111, 214, 214, 0.022) 1px,
+        transparent 1px,
+        transparent 64px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(111, 214, 214, 0.022) 0px,
+        rgba(111, 214, 214, 0.022) 1px,
+        transparent 1px,
+        transparent 64px
+      );
+    background-repeat: no-repeat, repeat, repeat;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* Keyboard users must always be able to see where they are. */
+  :focus-visible {
+    outline: 2px solid var(--ice);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbars, styled to match the dark console instead of the OS default. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--navy-950);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--navy-700);
+    border-radius: 5px;
+    border: 2px solid var(--navy-950);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--navy-600);
+  }
+}
+
+/* ---------- 3. COMPONENT CLASSES ---------- */
+@layer components {
+  /* --- Cards and panels --- */
+  .card {
+    background-color: var(--navy-900);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+
+    /* min-width: 0 is essential, not cosmetic.
+       A card is usually a grid or flex item, and those default to
+       `min-width: auto` — meaning they refuse to shrink below the widest
+       thing inside them. A wide table would therefore stretch the card
+       past the edge of a phone screen instead of scrolling inside it.
+       Setting 0 here lets .table-scroll do its job. */
+    min-width: 0;
+  }
+
+  .card-tight {
+    padding: 14px 16px;
+    min-width: 0;
+  }
+
+  /* Card that is itself a button/link — lifts slightly on hover. */
+  .card-interactive {
+    transition:
+      border-color 0.14s ease,
+      background-color 0.14s ease;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+  }
+  .card-interactive:hover {
+    border-color: var(--ice-dim);
+    background-color: var(--navy-850);
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 14px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-hi);
+  }
+
+  .panel-subtitle {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--ink-low);
+  }
+
+  /* Small uppercase label used above values and section groups. */
+  .eyebrow {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-low);
+  }
+
+  /* --- Stat cards (the big numbers on the dashboard) --- */
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink-hi);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-value--warn {
+    color: var(--amber);
+  }
+  .stat-value--alert {
+    color: var(--orange);
+  }
+  .stat-value--ok {
+    color: var(--green);
+  }
+
+  /* --- Tables --- */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .data-table thead th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-low);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .data-table tbody td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink-mid);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .data-table tbody tr:hover {
+    background-color: rgba(111, 214, 214, 0.035);
+  }
+  .data-table .cell-strong {
+    color: var(--ink-hi);
+    font-weight: 500;
+  }
+
+  /* IDs, dates and coordinates must never break across two lines —
+     "EXP-001" split over two rows looks like a bug. */
+  .data-table td.mono {
+    white-space: nowrap;
+  }
+
+  /* Wrapper that lets wide tables scroll sideways on small screens
+     instead of breaking the page layout. */
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0 -20px -18px;
+    padding: 0 20px 4px;
+  }
+
+  /* --- Status badges --- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge--ok {
+    background-color: rgba(79, 201, 138, 0.12);
+    border-color: rgba(79, 201, 138, 0.32);
+    color: var(--green);
+  }
+  .badge--info {
+    background-color: rgba(111, 214, 214, 0.12);
+    border-color: rgba(111, 214, 214, 0.32);
+    color: var(--ice);
+  }
+  .badge--blue {
+    background-color: rgba(90, 169, 255, 0.12);
+    border-color: rgba(90, 169, 255, 0.32);
+    color: var(--blue);
+  }
+  .badge--warn {
+    background-color: rgba(232, 184, 75, 0.12);
+    border-color: rgba(232, 184, 75, 0.32);
+    color: var(--amber);
+  }
+  .badge--alert {
+    background-color: rgba(255, 106, 61, 0.14);
+    border-color: rgba(255, 106, 61, 0.36);
+    color: var(--orange);
+  }
+  .badge--critical {
+    background-color: rgba(255, 90, 90, 0.16);
+    border-color: rgba(255, 90, 90, 0.42);
+    color: var(--red);
+  }
+  .badge--violet {
+    background-color: rgba(169, 139, 255, 0.13);
+    border-color: rgba(169, 139, 255, 0.34);
+    color: var(--violet);
+  }
+  .badge--muted {
+    background-color: rgba(165, 189, 199, 0.1);
+    border-color: rgba(165, 189, 199, 0.22);
+    color: var(--ink-mid);
+  }
+
+  /* --- Status dots --- */
+  .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot--ok {
+    background-color: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .dot--warn {
+    background-color: var(--amber);
+    box-shadow: 0 0 6px var(--amber);
+  }
+  .dot--alert {
+    background-color: var(--orange);
+    box-shadow: 0 0 6px var(--orange);
+  }
+  .dot--info {
+    background-color: var(--ice);
+    box-shadow: 0 0 6px var(--ice);
+  }
+  .dot--muted {
+    background-color: var(--ink-low);
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border: 1px solid var(--ice-dim);
+    border-radius: var(--radius);
+    background-color: rgba(111, 214, 214, 0.08);
+    color: var(--ice);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      background-color 0.14s ease,
+      border-color 0.14s ease,
+      opacity 0.14s ease;
+  }
+  .btn:hover:not(:disabled) {
+    background-color: rgba(111, 214, 214, 0.18);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn--alert {
+    border-color: var(--orange);
+    background-color: rgba(255, 106, 61, 0.12);
+    color: var(--orange);
+  }
+  .btn--alert:hover:not(:disabled) {
+    background-color: rgba(255, 106, 61, 0.24);
+  }
+
+  .btn--ghost {
+    border-color: var(--line);
+    background-color: transparent;
+    color: var(--ink-mid);
+  }
+  .btn--ghost:hover:not(:disabled) {
+    border-color: var(--ink-low);
+    color: var(--ink-hi);
+    background-color: var(--navy-850);
+  }
+
+  .btn--sm {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+
+  /* --- Form fields --- */
+  .field-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-low);
+  }
+
+  .input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--navy-800);
+    color: var(--ink-hi);
+    font-family: var(--font-body);
+    font-size: 13px;
+    transition: border-color 0.14s ease;
+  }
+  .input:focus {
+    border-color: var(--ice-dim);
+    outline: none;
+  }
+  .input::placeholder {
+    color: var(--ink-low);
+  }
+  textarea.input {
+    min-height: 68px;
+    resize: vertical;
+  }
+
+  /* Small inline <select> used inside table rows to change a status. */
+  .select-inline {
+    padding: 4px 7px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--navy-800);
+    color: var(--ink-hi);
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+  .select-inline:focus {
+    border-color: var(--ice-dim);
+    outline: none;
+  }
+
+  /* A field this role is not allowed to use — see src/lib/roles.js.
+     DIMMED, NOT HIDDEN, and that is the point: a read-only session must
+     still be able to READ the value. Hiding the select would hide the
+     status it is showing, which is information the scientist needs. */
+  .input:disabled,
+  textarea.input:disabled,
+  .select-inline:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* --- Empty / loading / error states --- */
+  .state-block {
+    padding: 36px 20px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--ink-low);
+    font-size: 13px;
+  }
+  .state-block strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--ink-mid);
+    font-size: 14px;
+  }
+
+  /* --- Utility text classes --- */
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .text-hi {
+    color: var(--ink-hi);
+  }
+  .text-mid {
+    color: var(--ink-mid);
+  }
+  .text-low {
+    color: var(--ink-low);
+  }
+
+  /* --- Sidebar navigation ---
+     One button per module. The active one gets a teal left edge, which is
+     how you always know where you are in the console. */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px 8px 14px;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: transparent;
+    color: var(--ink-mid);
+    font-family: var(--font-body);
+    font-size: 13px;
+    text-align: left;
+    transition: background-color 0.14s ease, color 0.14s ease;
+  }
+  .nav-item:hover {
+    background: var(--navy-850);
+    color: var(--ink-hi);
+  }
+  .nav-item--active {
+    border-left-color: var(--ice);
+    background: var(--navy-800);
+    color: var(--ink-hi);
+    font-weight: 500;
+  }
+
+  .nav-group-label {
+    padding: 0 14px;
+    margin: 16px 0 6px;
+    color: var(--ink-low);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* A small count pill on a nav item, e.g. 3 open incidents. */
+  .nav-count {
+    margin-left: auto;
+    min-width: 18px;
+    padding: 1px 5px;
+    border-radius: 9px;
+    background: var(--navy-700);
+    color: var(--ink-mid);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-align: center;
+  }
+  .nav-count--alert {
+    background: rgba(255, 90, 90, 0.16);
+    color: var(--red);
+  }
+  .nav-count--warn {
+    background: rgba(232, 184, 75, 0.16);
+    color: var(--amber);
+  }
+
+  /* --- Page header strip above the content --- */
+  .page-title {
+    margin: 0;
+    color: var(--ink-hi);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .page-blurb {
+    margin: 2px 0 0;
+    color: var(--ink-low);
+    font-size: 12.5px;
+  }
+
+  /* --- Thin progress bar, used for expedition completion --- */
+  .progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--navy-700);
+    overflow: hidden;
+  }
+  .progress > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--ice);
+  }
+  .progress--warn > span {
+    background: var(--amber);
+  }
+  .progress--muted > span {
+    background: var(--ink-low);
+  }
+
+  /* --- Critical alert banner (Emergency + Dashboard) --- */
+  .alert-strip {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 90, 90, 0.4);
+    border-left: 3px solid var(--red);
+    border-radius: var(--radius);
+    background: rgba(255, 90, 90, 0.07);
+  }
+  .alert-strip--warn {
+    border-color: rgba(232, 184, 75, 0.4);
+    border-left-color: var(--amber);
+    background: rgba(232, 184, 75, 0.07);
+  }
+
+  /* --- A labelled key/value row, used in detail panels --- */
+  .kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 12.5px;
+  }
+  .kv:last-child {
+    border-bottom: 0;
+  }
+  .kv > dt {
+    color: var(--ink-low);
+  }
+  .kv > dd {
+    margin: 0;
+    color: var(--ink-hi);
+    text-align: right;
+  }
+
+  /* --- Sign-in screen: one of the four role choices ---
+     Used by src/pages/Login.jsx.
+
+     NOTE FOR ANYONE COMPARING THIS WITH THE BADGES: `login-role--active`
+     needs no entry in the safelist in tailwind.config.js, because Login.jsx
+     writes the name out in full:
+
+         className={`login-role ${active ? 'login-role--active' : ''}`}
+
+     Tailwind can find that text, so it keeps the rule. The badge classes are
+     built from a variable (`badge--${tone}`) and cannot be found, which is
+     the whole reason that safelist exists. */
+  .login-role {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--navy-800);
+    text-align: left;
+    transition:
+      border-color 0.14s ease,
+      background-color 0.14s ease;
+  }
+  .login-role:hover {
+    border-color: var(--ice-dim);
+    background-color: var(--navy-850);
+  }
+  /* The selected one also gets its role colour as an inline border colour and
+     a 3px inset stripe — set in the component, because the colour depends on
+     which role it is. */
+  .login-role--active {
+    background-color: var(--navy-850);
+  }
+
+  /* --- Read-only session notice (shown by src/App.jsx) ---
+     A missing button with no explanation looks like a broken app, so a
+     read-only role gets one line telling it why the buttons are missing. */
+  .readonly-strip {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(79, 201, 138, 0.28);
+    background: rgba(79, 201, 138, 0.06);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+  }
+
+  /* --- Database problem notice (shown by src/App.jsx) ---
+     Same shape as the read-only strip on purpose — one line across the top of
+     every page — but amber rather than green, because this one is a problem
+     and that one is just a fact. Amber and not red: nothing is broken and no
+     data has vanished from the screen, the database just did not keep up.
+     Red is saved for an actual emergency, which in this app means an
+     emergency. */
+  .sync-strip {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(232, 168, 61, 0.32);
+    background: rgba(232, 168, 61, 0.07);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+  }
+  .sync-strip__action {
+    flex-shrink: 0;
+    border-bottom: 1px solid currentColor;
+    color: var(--ink-hi);
+    font-size: 11px;
+  }
+  .sync-strip__action:hover {
+    color: var(--amber);
+  }
+}
+
+/* ============================================================
+   4. MAP (Leaflet)
+   ============================================================
+   Leaflet ships its own stylesheet, which is imported at the top of
+   src/pages/MapView.jsx. That stylesheet is built for a LIGHT page, so
+   everything below re-skins it to match this dark console.
+
+   Nothing here changes how the map WORKS — it is purely appearance.
+   If you ever want the plain default Leaflet look back, delete this
+   whole section.
+*/
+
+/* The bordered box the map sits inside. */
+.map-shell {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Leaflet's default background is light grey (#ddd), which flashes
+   brightly before the tiles arrive. Navy matches the app instead. */
+.leaflet-container {
+  background: var(--navy-950);
+  font-family: var(--font-body);
+}
+
+/* THE DARK BASEMAP.
+   We use the standard OpenStreetMap tiles (free, no API key, and the
+   attribution stays on the map). OSM tiles are designed to be bright,
+   so this filter desaturates and darkens them. The result reads as a
+   night-operations chart, and the orange/teal markers stand out
+   against it instead of fighting green fields and beige roads.
+
+   TO TUNE IT: `brightness` is the dial you want. Lower = darker map.
+   Delete the whole rule to get plain OpenStreetMap colours back.
+
+   This class is attached to the tile layer in MapView.jsx via
+   L.tileLayer(url, { className: 'map-tiles' }). */
+.map-tiles {
+  filter: grayscale(0.92) brightness(0.36) contrast(1.3);
+}
+
+/* Zoom buttons. */
+.leaflet-control-zoom a {
+  background: var(--navy-850);
+  border-color: var(--line) !important;
+  color: var(--ink-mid);
+}
+.leaflet-control-zoom a:hover {
+  background: var(--navy-800);
+  color: var(--ink-hi);
+}
+
+/* OSM requires attribution to stay visible. We keep it — just quiet. */
+.leaflet-control-attribution {
+  background: rgba(8, 17, 26, 0.82) !important;
+  color: var(--ink-low) !important;
+  font-size: 9.5px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--ink-mid) !important;
+}
+
+/* Hover labels on markers. */
+.leaflet-tooltip {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--navy-850);
+  color: var(--ink-hi);
+  box-shadow: none;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.leaflet-tooltip::before {
+  display: none;
+}
+
+/* --- OUR OWN MARKERS ---
+   Leaflet's default marker is a blue teardrop loaded from an image file,
+   which bundlers famously break. We sidestep that entirely by drawing
+   markers as small HTML elements (L.divIcon), styled here. Bonus: they
+   use our own palette and three different shapes, so a judge can tell
+   a station from a person from an incident at a glance. */
+.map-pin {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  transition: transform 0.12s ease;
+}
+.map-pin:hover {
+  transform: scale(1.25);
+  z-index: 1000;
+}
+
+/* Sites — a square. Stations, camps, vessels, depots, ports, HQ. */
+.map-pin--site {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--navy-950);
+  border-radius: 2px;
+}
+
+/* People — a round dot, smaller than a site. */
+.map-pin--person {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--navy-950);
+  border-radius: 50%;
+}
+
+/* Incidents — a ring that pulses, so an open emergency is impossible
+   to miss on a moving map. (pulse-alert is defined in the animation
+   section further down; @keyframes work regardless of order.) */
+.map-pin--incident {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  background: rgba(255, 90, 90, 0.28);
+  animation: pulse-alert 1.9s ease-in-out infinite;
+}
+.map-pin--incident::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* Whatever is currently open in the detail panel gets a halo, so you
+   never lose track of which marker you clicked. */
+.map-pin--selected {
+  box-shadow:
+    0 0 0 3px rgba(111, 214, 214, 0.85),
+    0 0 12px rgba(111, 214, 214, 0.6);
+  transform: scale(1.2);
+}
+
+/* A small legend row: the swatch mirrors the marker shape. */
+.legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--navy-950);
+}
+
+/* ---------- 4b. WEATHER ----------
+   One box per day in the four-day outlook on each station card. Sunk
+   slightly darker than the card it sits on so the strip reads as one
+   group of four rather than four floating columns of numbers.
+*/
+.forecast-day {
+  background: var(--navy-950);
+  border: 1px solid var(--line-soft);
+  border-radius: 3px;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+/* ---------- 4c. EMERGENCY ----------
+   One box per open incident on the response board.
+
+   The LEFT EDGE carries the severity colour. It is set inline from the
+   same tone the severity badge uses, so a critical incident is visible
+   from across a room before you have read a single word — and the stripe
+   can never disagree with the badge beside it, because neither one picks
+   its own colour.
+
+   Sunk one shade darker than the panel it sits in, the same way
+   .forecast-day is, so a row of incidents reads as one board.
+*/
+.incident {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ink-low);
+  border-radius: var(--radius);
+  background: var(--navy-950);
+  padding: 12px 14px;
+}
+
+/* Used for the "open for 1h 41m" clock on an incident that nobody has
+   acknowledged yet. Monospaced so the digits do not shuffle sideways
+   every time the minute ticks over. */
+.incident-clock {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 5. ANIMATION ----------
+   Deliberately minimal. A pulse for live alerts and a fade for
+   mounting content. Nothing decorative.
+*/
+@keyframes pulse-alert {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse {
+  animation: pulse-alert 1.9s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fade-up 0.22s ease-out;
+}
+
+/* Respect users who ask their operating system to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .fade-up,
+  .map-pin--incident {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   6. CHARTS (Recharts)
+   ============================================================
+   Recharts draws SVG, and SVG shapes are coloured by attributes rather
+   than by our CSS classes — so the bars and the axis text get their
+   colours from JavaScript instead (see TONE_COLOUR in
+   src/lib/statuses.js and the constants at the top of
+   src/components/HorizontalBarChart.jsx).
+
+   What is left for CSS is the furniture around the drawing: the hover
+   box, the fonts, and switching off the focus ring Recharts puts on its
+   own wrapper. Kept outside @layer components because a couple of these
+   rules have to beat Recharts' own inline defaults.
+   ============================================================ */
+
+.chart-wrap {
+  /* Recharts measures its container to work out its width. If the
+     container can shrink below the chart, the two argue with each other
+     and the chart wobbles on resize; min-width: 0 settles it. */
+  min-width: 0;
+  width: 100%;
+}
+
+/* Axis text. Recharts sets the colour per element, so we only set type
+   here — this keeps the numbers in the same condensed face as the rest of
+   the console instead of falling back to a browser default. */
+.recharts-text {
+  font-family: var(--font-body);
+}
+.recharts-cartesian-axis-tick-value {
+  letter-spacing: 0.01em;
+}
+
+/* The figures printed at the end of each bar can land on top of the dashed
+   minimum line on the inventory chart — "9/15" with a line through the 1
+   reads as a number crossed out. paint-order: stroke paints a thick outline
+   in the panel's own colour FIRST and the letters on top of it, so every
+   figure carries a little clear space around it. Invisible everywhere else;
+   the figures are always drawn beside a bar, never over one. */
+.recharts-label-list text {
+  paint-order: stroke;
+  stroke: var(--navy-900);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+/* Recharts wraps the chart in a focusable div and some browsers draw a
+   ring round it on click. There is nothing to operate with a keyboard
+   inside the chart, so the ring is just noise. */
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-surface:focus {
+  outline: none;
+}
+
+/* THE HOVER BOX.
+   Same surface, border and radius as a card, so it looks like it belongs
+   to this console rather than to a charting library. */
+.chart-tip {
+  min-width: 120px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--navy-900);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.chart-tip__label {
+  color: var(--ink-hi);
+  font-size: 12px;
+  line-height: 1.3;
+}
+.chart-tip__value {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ============================================================
+   LANDING PAGE — ported from polar-expedition-logistics
+   (Field Cartography design). Scoped to the Landing page's own
+   markup; .eyebrow was renamed .pl-eyebrow to avoid colliding
+   with the console's own .eyebrow class above.
+   ============================================================ */
+
+.site-shell { --ink:#123048; --night:#08253d; --deep:#0d3049; --ice:#f1f4f0; --pale:#dbe9e9; --muted:#5c7280; --line:#bccdcd; --orange:#f05a36; color:var(--ink); background:var(--ice); font-family:"DM Sans",Arial,sans-serif; }
+.site-shell button { font:inherit; } .site-shell button:focus-visible { outline:2px solid var(--orange); outline-offset:3px; }
+.site-shell { position:relative; overflow:clip; }
+.route-spine { position:absolute; z-index:5; top:100vh; bottom:0; left:clamp(18px,4.8vw,80px); width:1px; opacity:.55; pointer-events:none; }.route-spine b { display:block; height:32%; border-left:1px dashed #91aaaf; }.route-spine i { position:relative; left:-4px; display:block; width:9px; height:9px; border:2px solid var(--orange); border-radius:50%; background:var(--ice); }
+
+.masthead { position:absolute; z-index:20; top:0; width:100%; padding:18px clamp(22px,5.6vw,88px); display:flex; align-items:center; justify-content:space-between; color:white; }.brand-lockup { display:flex; gap:12px; align-items:center; padding:0; border:0; color:inherit; background:none; text-align:left; cursor:pointer; }.brand-lockup img { width:48px; height:48px; padding:6px; object-fit:contain; border:1px solid rgba(218,244,246,.7); border-radius:50%; background:rgba(4,24,41,.34); box-shadow:0 0 0 5px rgba(193,237,241,.08); }.brand-lockup span { display:grid; font-size:9px; line-height:1.1; letter-spacing:.14em; }.brand-lockup strong { font-size:13px; letter-spacing:.24em; }.brand-lockup small { margin-top:4px; opacity:.78; font-size:9px; }.desktop-nav { display:flex; gap:27px; margin-left:auto; margin-right:34px; }.desktop-nav button { border:0; padding:8px 0; color:white; background:none; opacity:.88; font-size:12px; font-weight:700; letter-spacing:.06em; cursor:pointer; }.desktop-nav button:hover { opacity:1; }.header-cta { display:flex; gap:8px; align-items:center; padding:10px 13px; border:1px solid rgba(255,255,255,.48); border-radius:2px; color:white; background:rgba(4,20,38,.16); font-size:11px; font-weight:700; letter-spacing:.04em; cursor:pointer; transition:.18s ease; }.header-cta:hover { background:rgba(255,255,255,.14); }.mobile-menu,.mobile-nav { display:none; }
+
+.hero { position:relative; z-index:1; display:flex; align-items:end; min-height:min(860px,100svh); overflow:hidden; color:white; background:#09213a; }.hero>img,.hero-wash { position:absolute; inset:0; width:100%; height:100%; }.hero>img { z-index:-2; object-fit:cover; }.hero-wash { z-index:-1; background:linear-gradient(90deg,rgba(4,18,33,.9),rgba(4,18,33,.58) 46%,rgba(4,18,33,.08) 78%),linear-gradient(0deg,rgba(4,18,33,.44),transparent 44%); }.hero-content { width:min(790px,90%); margin:0 0 clamp(135px,16vh,190px) clamp(22px,12vw,210px); }.pl-eyebrow { display:flex; align-items:center; gap:9px; margin-bottom:18px; color:#587881; font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; }.pl-eyebrow.light { color:#c9e2e5; }.pl-eyebrow i { width:7px; height:7px; border-radius:50%; background:var(--orange); box-shadow:0 0 0 5px rgba(240,90,54,.16); }.hero h1,.intro h2,.command h2,.modules h2,.architecture h2,.roadmap h2,.closing h2 { margin:0; font-family:"Fraunces",Georgia,serif; font-weight:560; letter-spacing:-.06em; }.hero h1 { font-size:clamp(3rem,6vw,6.35rem); line-height:.93; }.hero h1 em,.closing h2 em { color:#c5e9ef; font-style:italic; }.hero-content>p { max-width:520px; margin:26px 0 32px; color:#e5ecef; font-size:clamp(15px,1.45vw,19px); line-height:1.55; }.hero-actions { display:flex; gap:23px; flex-wrap:wrap; align-items:center; }.primary-button { display:inline-flex; align-items:center; gap:11px; padding:15px 18px; border:0; border-radius:2px; color:white; background:var(--orange); font-size:12px; font-weight:700; letter-spacing:.02em; cursor:pointer; transition:.18s ease; }.primary-button:hover { background:#d94c2e; }.primary-button:active,.board-action:active { transform:scale(.97); }.text-button { display:flex; align-items:center; gap:8px; padding:8px 0; border:0; border-bottom:1px solid rgba(255,255,255,.48); color:white; background:none; font-size:12px; font-weight:700; cursor:pointer; }.hero-coordinates { position:absolute; top:132px; right:clamp(22px,5.6vw,88px); color:#dcecf0; font-family:"IBM Plex Mono",monospace; font-size:10px; line-height:1.7; letter-spacing:.05em; text-align:right; }.hero-coordinates span { color:#9bbac0; }.hero-stats { position:absolute; right:clamp(22px,5.6vw,88px); bottom:42px; display:flex; gap:clamp(18px,3.7vw,60px); }.hero-stats div { display:flex; flex-direction:column; padding-left:12px; border-left:1px solid rgba(255,255,255,.35); }.hero-stats strong { font-family:"Fraunces",Georgia,serif; font-size:25px; font-weight:500; line-height:1; }.hero-stats span { max-width:80px; margin-top:6px; color:#d7e3e5; font-family:"IBM Plex Mono",monospace; font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
+
+
+.section-wrap { padding:140px clamp(22px,12vw,210px); }.section-mark { position:relative; z-index:7; display:flex; gap:13px; width:max-content; margin-left:calc(-1 * clamp(0px,7vw,125px)); color:#587881; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }.section-mark b { color:var(--orange); }.section-mark.light { color:#b6d1d6; }.section-mark.light b { color:#f5896e; }
+/* Mission rationale — light ice-teal surface with subtle texture */
+.intro { background:var(--ice); position:relative; overflow:hidden; }.intro:before { content:""; position:absolute; inset:0; background:radial-gradient(ellipse 60% 80% at 80% 20%,rgba(255,255,255,.15),transparent 50%),linear-gradient(180deg,rgba(255,255,255,.08),transparent 60%); pointer-events:none; }.intro-layout { display:grid; grid-template-columns:1.08fr .92fr; gap:clamp(50px,9vw,140px); margin-top:51px; }.intro h2,.modules h2,.roadmap h2 { max-width:600px; color:#153047; font-size:clamp(2.55rem,4.3vw,4.55rem); line-height:.99; }.intro-copy>p { margin:0; color:#405462; font-size:18px; line-height:1.65; }.principle-list { margin-top:42px; border-top:1px solid #b7c7c9; }.principle-list>div { display:grid; grid-template-columns:38px 1fr; gap:9px; padding:18px 0; border-bottom:1px solid #cbd6d5; }.principle-list b { color:var(--orange); font-family:"IBM Plex Mono",monospace; font-size:10px; }.principle-list p { margin:0; color:#546873; font-size:14px; line-height:1.55; }.principle-list strong { color:#173448; }
+
+/* Console access — dark console surface with ice accent */
+.section-wrap#access { background:var(--navy-900); position:relative; }.section-wrap#access:before { content:""; position:absolute; inset:0; background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(111,214,214,.06),transparent 60%),linear-gradient(180deg,rgba(111,214,214,.02),transparent 40%); pointer-events:none; }.section-wrap#access .section-mark { color:#b6d1d6; }.section-wrap#access .section-mark b { color:#f5896e; }.section-wrap#access .intro-layout { margin-top:51px; }.section-wrap#access h2 { color:#eaf2f2; }.section-wrap#access p { color:#b8cbd2; }.section-wrap#access .card { background:var(--navy-850); border:1px solid var(--line); }.section-wrap#access .login-role { border:1px solid var(--line); background:var(--navy-800); transition:.15s ease; }.section-wrap#access .login-role:hover { border-color:var(--ice-dim); background:var(--navy-700); }.section-wrap#access .login-role--active { border-color:var(--orange); box-shadow:inset 3px 0 0 var(--orange); background:var(--navy-700); }.section-wrap#access .input { background:var(--navy-800); border-color:var(--line); color:var(--ink-hi); }.section-wrap#access .input:focus { border-color:var(--ice); box-shadow:0 0 0 3px rgba(111,214,214,.15); }.section-wrap#access .btn { background:var(--orange); }.section-wrap#access .btn:hover { background:#d94c2e; }.section-wrap#access .alert-strip { background:rgba(255,90,90,.1); border:1px solid rgba(255,90,90,.3); }.section-wrap#access .field-label { color:#b8cbd2; }.section-wrap#access .eyebrow { color:#83b2ba; }.section-wrap#access dd { color:#eaf2f2; }.section-wrap#access dt { color:#83b2ba; }
+
+.command { color:#eaf2f2; background:var(--night); }.command-intro { display:flex; justify-content:space-between; gap:50px; align-items:end; margin-top:51px; }.command h2,.architecture h2 { max-width:680px; color:#f1f4f0; font-size:clamp(2.55rem,4.5vw,4.7rem); line-height:.98; }.command-intro>p { max-width:390px; margin:0 0 6px; color:#b8cbd2; font-size:15px; line-height:1.6; }.scenario-tabs { display:flex; gap:2px; margin-top:50px; }.scenario-tabs button { display:flex; gap:16px; align-items:center; padding:12px 16px; border:1px solid rgba(202,228,231,.2); color:#b8cbd2; background:transparent; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; }.scenario-tabs button:hover,.scenario-tabs .selected { color:#113047; background:#d9ebed; }
+.command-board { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(300px,.75fr); margin-top:20px; border:1px solid rgba(202,228,231,.24); }.board-map { position:relative; min-height:475px; overflow:hidden; background:#123952 radial-gradient(circle at 35% 15%,rgba(92,168,181,.25),transparent 26%); }.map-ruler { position:absolute; z-index:4; top:22px; left:25px; color:#d9eaeb; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.12em; }.map-ruler span { margin-left:10px; color:#83b2ba; }.contour { position:absolute; border:1px solid rgba(187,228,230,.28); border-radius:45% 55% 48% 52%; transform:rotate(-18deg); }.contour.one { width:670px; height:320px; top:67px; left:-100px; }.contour.two { width:510px; height:460px; top:-70px; left:140px; }.contour.three { width:590px; height:350px; top:195px; left:220px; }.board-map svg { position:absolute; z-index:2; inset:0; width:100%; height:100%; }.board-map path { fill:none; stroke:var(--orange); stroke-width:2.5; stroke-dasharray:6 8; }.map-pin { position:absolute; z-index:5; display:flex; gap:8px; align-items:center; color:white; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.06em; }.map-pin strong,.map-pin small { display:block; }.map-pin strong { font-size:9px; }.map-pin small { margin-top:3px; color:#a7c8cc; font-size:8px; }.map-pin>i { display:block; width:13px; height:13px; border:2px solid #d7f5f6; border-radius:50%; box-shadow:0 0 0 5px rgba(223,255,255,.09); background:#79c5cf; }.map-pin.base { left:8%; bottom:24%; }.map-pin.base>i { background:#d7f5f6; }.map-pin.echo { left:43%; top:45%; }.map-pin.camp { top:20%; right:8%; }.map-pin.camp>i { background:transparent; }.map-pin.flight { right:26%; bottom:25%; }.map-pin.flight>i,.map-pin>i.alert { border-color:#ffb19e; background:var(--orange); }.map-pin>i.alert { box-shadow:0 0 0 7px rgba(240,90,54,.2); animation:pulse 1.4s ease-in-out infinite; }.map-scale { position:absolute; left:25px; bottom:21px; display:flex; gap:8px; align-items:center; color:#b7d6d9; font-family:"IBM Plex Mono",monospace; font-size:9px; }.map-scale i { display:block; width:70px; height:3px; border:1px solid #e4f4f4; background:linear-gradient(90deg,#e4f4f4 50%,transparent 50%); }
+.board-side { padding:25px; color:#143248; background:#eef2ef; }.board-status { display:flex; justify-content:space-between; gap:8px; align-items:center; }.status-chip,.sync { display:flex; gap:6px; align-items:center; font-family:"IBM Plex Mono",monospace; font-size:8px; letter-spacing:.06em; text-transform:uppercase; }.status-chip i { width:7px; height:7px; border-radius:50%; }.status-chip.calm i { background:#51a491; }.status-chip.watch i { background:#f4b04f; }.status-chip.critical i { background:var(--orange); }.sync { color:#617784; text-transform:none; }.board-side h3 { margin:25px 0 10px; color:#16364b; font-family:"Fraunces",Georgia,serif; font-size:29px; font-weight:550; letter-spacing:-.04em; line-height:1.02; }.board-side>p { min-height:66px; margin:0; color:#5b707b; font-size:13px; line-height:1.55; }.metric-list { margin-top:22px; border-top:1px solid #c6d2d1; }.metric { display:flex; gap:10px; padding:12px 0; border-bottom:1px solid #c6d2d1; }.metric-icon { display:grid; flex:0 0 auto; width:28px; height:28px; place-items:center; color:var(--orange); background:#dcebea; }.metric small,.metric em { display:block; color:#6b7e86; font-family:"IBM Plex Mono",monospace; font-size:8px; letter-spacing:.03em; font-style:normal; }.metric strong { display:block; margin:2px 0; color:#143248; font-size:16px; line-height:1; }.board-action { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:18px; padding:12px; border:0; color:#eef2ef; background:#143248; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.05em; text-transform:uppercase; cursor:pointer; transition:.18s ease; }.board-action:hover { background:#0d2439; }.event-strip { display:grid; grid-column:1 / -1; grid-template-columns:1fr 1.6fr 1.6fr 1.6fr; padding:0 25px; border-top:1px solid rgba(202,228,231,.24); color:#d3e0e1; background:#0a2237; }.event-title,.event { display:flex; gap:8px; align-items:center; min-height:50px; padding:0 15px; border-right:1px solid rgba(202,228,231,.12); font-family:"IBM Plex Mono",monospace; font-size:9px; }.event-title { padding-left:0; color:#a9c9ce; letter-spacing:.08em; text-transform:uppercase; }.event { display:grid; grid-template-columns:38px 1fr; }.event time { color:#91b6bc; }.event span { color:#dbe8e9; }.event em { grid-column:2; color:#f5896e; font-size:8px; font-style:normal; text-transform:uppercase; }.concept-note { display:flex; gap:7px; align-items:center; margin-top:16px; color:#9cb9bf; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.03em; }
+
+.modules { background:var(--ice); }.modules-header,.roadmap-header { display:flex; justify-content:space-between; gap:52px; align-items:end; margin-top:51px; }.modules-header>p,.roadmap-header>p { max-width:380px; margin:0 0 4px; color:#536976; font-size:15px; line-height:1.6; }.modules-layout { display:grid; grid-template-columns:minmax(260px,.85fr) minmax(270px,.9fr) minmax(260px,.8fr); margin-top:55px; border:1px solid var(--line); }.module-rail { display:flex; flex-direction:column; border-right:1px solid var(--line); }.module-rail button { display:grid; grid-template-columns:25px 24px 1fr 17px; align-items:center; gap:9px; min-height:80px; padding:15px 16px; border:0; border-bottom:1px solid var(--line); color:#48606e; background:transparent; text-align:left; font-size:13px; font-weight:700; cursor:pointer; }.module-rail button:last-child { border-bottom:0; }.module-rail button:hover,.module-rail .selected { color:white; background:#14364f; }.module-rail b { color:var(--orange); font-family:"IBM Plex Mono",monospace; font-size:9px; }.module-rail svg:last-child { justify-self:end; opacity:.55; }.module-feature { display:flex; flex-direction:column; align-items:flex-start; padding:33px; color:#143248; background:#dce9e9; }.module-feature>span { margin-bottom:auto; color:#5a747b; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.07em; text-transform:uppercase; }.module-feature>svg { margin-top:42px; color:var(--orange); }.module-feature h3 { margin:22px 0 12px; font-family:"Fraunces",Georgia,serif; font-size:31px; font-weight:550; letter-spacing:-.05em; line-height:1; }.module-feature>p { margin:0; color:#4e6873; font-size:14px; line-height:1.55; }.module-feature>div { margin-top:auto; padding-top:27px; border-top:1px solid #a5c0c0; }.module-feature>div small { color:var(--orange); font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; }.module-feature>div p { margin:8px 0 0; color:#345461; font-size:12px; line-height:1.5; }.module-image { position:relative; min-height:470px; overflow:hidden; background:#14364f; }.module-image img { width:100%; height:100%; object-fit:cover; transition:transform .5s cubic-bezier(.23,1,.32,1); }.module-image:hover img { transform:scale(1.04); }.module-image:after { content:""; position:absolute; inset:0; background:linear-gradient(0deg,rgba(4,23,38,.75),transparent 55%); }.module-image>span { position:absolute; z-index:2; bottom:28px; left:25px; color:#f2f4f0; font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.5; letter-spacing:.1em; text-transform:uppercase; }.module-image i { color:#a9c9ce; font-style:normal; }
+
+.architecture { color:#eaf2f2; background:#12364f; }.architecture-layout { display:grid; grid-template-columns:.86fr 1.14fr; gap:80px; align-items:center; margin-top:50px; }.architecture p { max-width:440px; margin:25px 0 0; color:#b8cbd2; font-size:16px; line-height:1.65; }.layers { padding:24px 0; }.layers article { position:relative; display:grid; grid-template-columns:150px 1fr auto; gap:15px; align-items:center; min-height:80px; padding:18px 21px; border:1px solid rgba(205,236,236,.28); background:rgba(8,30,48,.24); }.layers article:after { content:""; position:absolute; top:0; right:0; width:5px; height:100%; background:var(--orange); }.layers article span,.layers article small { font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.05em; }.layers article span { color:#9ac4c9; text-transform:uppercase; }.layers article strong { font-family:"Fraunces",Georgia,serif; font-size:22px; font-weight:500; letter-spacing:-.035em; }.layers article small { color:#b7d1d3; text-align:right; }.bridge { position:relative; display:flex; gap:5px; align-items:center; height:47px; padding-left:51%; color:#b8d9dc; font-family:"IBM Plex Mono",monospace; font-size:9px; }.bridge:before { content:""; position:absolute; top:0; bottom:0; left:50%; border-left:1px dashed #73aeb5; }
+
+.roadmap { background:var(--ice); }.roadmap-ui { margin-top:62px; }.roadmap-track { display:flex; align-items:center; justify-content:space-between; }.roadmap-track button { position:relative; display:flex; flex:1; flex-direction:column; align-items:flex-start; gap:10px; padding:0 0 19px; border:0; border-bottom:1px solid #b4c4c5; color:#647984; background:transparent; font-family:"IBM Plex Mono",monospace; font-size:10px; cursor:pointer; }.roadmap-track button:after { content:""; position:absolute; bottom:-5px; left:0; width:9px; height:9px; border:2px solid #809ba0; border-radius:50%; background:var(--ice); }.roadmap-track button:hover,.roadmap-track .selected { color:#143248; border-color:var(--orange); }.roadmap-track .selected:after { border-color:var(--orange); background:var(--orange); box-shadow:0 0 0 4px rgba(240,90,54,.12); }.roadmap-track i { width:85%; height:1px; opacity:.5; background:currentColor; }.roadmap-card { display:flex; justify-content:space-between; gap:35px; min-height:235px; margin-top:42px; padding:38px; color:#ecf3f1; background:#16364c; }.roadmap-card small { color:#f5896e; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.09em; text-transform:uppercase; }.roadmap-card h3 { margin:12px 0 9px; font-family:"Fraunces",Georgia,serif; font-size:39px; font-weight:500; letter-spacing:-.05em; line-height:1; }.roadmap-card p { max-width:480px; margin:0; color:#bdced1; font-size:15px; line-height:1.6; }.roadmap-controls { display:flex; align-self:end; gap:11px; align-items:center; color:#a7c1c5; font-family:"IBM Plex Mono",monospace; font-size:10px; }.roadmap-controls button { display:grid; width:36px; height:36px; place-items:center; border:1px solid rgba(221,244,244,.35); border-radius:50%; color:#eff6f5; background:transparent; cursor:pointer; }.roadmap-controls button:hover { background:rgba(255,255,255,.12); }
+
+.closing { position:relative; display:flex; align-items:center; justify-content:space-between; min-height:530px; padding:100px clamp(22px,12vw,210px); overflow:hidden; color:white; background:#0a253d; }.closing:before { content:""; position:absolute; top:-200px; right:-220px; width:750px; height:750px; border:1px solid rgba(168,223,230,.16); border-radius:47% 53% 56% 44%; box-shadow:0 0 0 65px rgba(168,223,230,.035),0 0 0 160px rgba(168,223,230,.025); transform:rotate(-28deg); }.closing>div,.closing aside { position:relative; z-index:1; }.closing>div { max-width:640px; }.closing h2 { color:#f3f4f0; font-size:clamp(3rem,5.5vw,5.8rem); line-height:.91; }.closing p { max-width:480px; margin:26px 0 30px; color:#c8d8dc; font-size:16px; line-height:1.65; }.closing aside { display:flex; gap:18px; align-items:center; color:#b6d0d5; font-family:"IBM Plex Mono",monospace; font-size:10px; line-height:1.6; letter-spacing:.08em; }.closing aside img { width:83px; height:83px; object-fit:contain; }.site-shell footer { display:flex; justify-content:space-between; gap:15px; align-items:center; padding:22px clamp(22px,5.6vw,88px); color:#6f858c; background:#071b2d; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.07em; text-transform:uppercase; }.site-shell footer>span { display:flex; gap:8px; align-items:center; color:#d9e8e8; }.site-shell footer img { width:20px; height:20px; object-fit:contain; }
+@keyframes pulse { 50% { transform:scale(1.14); box-shadow:0 0 0 8px rgba(240,90,54,.08); } }
+@keyframes stat-pulse { 0%,100% { text-shadow:0 0 8px rgba(255,106,61,.6),0 0 16px rgba(255,106,61,.3); } 50% { text-shadow:0 0 20px rgba(255,106,61,.9),0 0 32px rgba(255,106,61,.5); } }
+@media (max-width:1020px) { .masthead { padding-inline:25px; }.desktop-nav,.header-cta { display:none; }.mobile-menu { display:grid; width:38px; height:38px; place-items:center; border:1px solid rgba(255,255,255,.55); color:white; background:rgba(4,20,38,.18); cursor:pointer; }.mobile-nav { position:absolute; top:75px; right:25px; display:flex; min-width:180px; flex-direction:column; padding:9px; border:1px solid rgba(208,236,236,.35); background:#103149; box-shadow:0 16px 38px rgba(0,0,0,.22); }.mobile-nav button { border:0; padding:11px; color:#eaf2f2; background:transparent; text-align:left; font-size:12px; cursor:pointer; }.hero-content,.section-wrap,.closing { padding-left:clamp(40px,8vw,90px); padding-right:clamp(26px,7vw,70px); margin-left:0; }.route-spine { left:22px; }.section-mark { margin-left:0; }.intro-layout,.architecture-layout { grid-template-columns:1fr; }.intro-layout { gap:36px; }.architecture-layout { gap:46px; }.command-intro,.modules-header,.roadmap-header { flex-direction:column; align-items:start; gap:20px; }.command-board { grid-template-columns:1fr; }.board-map { min-height:430px; }.event-strip { grid-template-columns:1fr; padding:0 20px; }.event-title,.event { border-right:0; border-bottom:1px solid rgba(202,228,231,.12); }.modules-layout { grid-template-columns:1fr 1fr; }.module-image { grid-column:1 / -1; min-height:290px; }.hero-stats { left:clamp(40px,8vw,90px); right:auto; }.hero-coordinates { display:none; } }
+@media (max-width:640px) { .hero { min-height:780px; }.hero-content { margin-bottom:182px; }.hero h1 { font-size:clamp(3rem,13vw,4.4rem); }.hero-content>p { font-size:15px; }.hero-stats { bottom:39px; gap:17px; }.hero-stats strong { font-size:20px; }.hero-stats span { max-width:65px; font-size:7px; }.section-wrap { padding-top:90px; padding-bottom:90px; }.intro h2,.modules h2,.roadmap h2,.command h2,.architecture h2 { font-size:clamp(2.55rem,11vw,3.5rem); }.intro-copy>p { font-size:16px; }.scenario-tabs { overflow-x:auto; padding-bottom:4px; }.scenario-tabs button { flex:0 0 auto; }.board-map { min-height:385px; }.map-ruler span { display:none; }.map-pin.flight { right:9%; bottom:16%; }.map-pin.camp { right:6%; top:18%; }.board-side { padding:21px; }.modules-layout { grid-template-columns:1fr; }.module-rail { border-right:0; border-bottom:1px solid var(--line); }.module-rail button { min-height:62px; }.module-feature { min-height:400px; }.module-image { grid-column:auto; min-height:260px; }.layers { padding:0; }.layers article { grid-template-columns:1fr; gap:6px; padding:18px; }.layers article small { text-align:left; }.bridge { height:42px; padding-left:26px; }.bridge:before { left:18px; }.roadmap-track { overflow-x:auto; }.roadmap-track button { min-width:92px; }.roadmap-card { flex-direction:column; min-height:270px; padding:26px; }.roadmap-card h3 { font-size:33px; }.roadmap-controls { align-self:start; }.closing { min-height:530px; }.closing aside { display:none; }.site-shell footer { flex-direction:column; align-items:flex-start; padding:20px 26px; } }
