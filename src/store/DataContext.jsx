@@ -132,6 +132,16 @@ export function DataProvider({ children }) {
   const [dbNotice, setDbNotice] = useState(null)
   const dismissDbNotice = useCallback(() => setDbNotice(null), [])
 
+  /* ---------- MAP FOCUS TARGET ----------
+     Allows the AI Assistant or other modules to request MapView to focus
+     and select a specific person/device, site, or emergency. */
+  const [mapTarget, setMapTarget] = useState(null)
+  const focusOnMap = useCallback(
+    ({ kind, id }) => setMapTarget({ kind, id, timestamp: Date.now() }),
+    []
+  )
+  const clearMapTarget = useCallback(() => setMapTarget(null), [])
+
   /* ---------- READING THE DATABASE ----------
      Called on mount, and again by reload(). Returns a description of what
      happened rather than throwing, because the caller's job is to decide
@@ -728,6 +738,11 @@ export function DataProvider({ children }) {
       personnelForExpedition,
       cargoForExpedition,
 
+      /* map targeting */
+      mapTarget,
+      focusOnMap,
+      clearMapTarget,
+
       /* actions */
       addExpedition,
       updateExpedition,
@@ -763,6 +778,9 @@ export function DataProvider({ children }) {
       getPerson,
       personnelForExpedition,
       cargoForExpedition,
+      mapTarget,
+      focusOnMap,
+      clearMapTarget,
       addExpedition,
       updateExpedition,
       deleteExpedition,

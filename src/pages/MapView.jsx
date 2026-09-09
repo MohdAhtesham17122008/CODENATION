@@ -201,6 +201,8 @@ export default function MapView({ goTo }) {
     getPerson,
     getLocation,
     getExpedition,
+    mapTarget,
+    clearMapTarget,
   } = useData()
 
   /* Which camera preset is active. */
@@ -398,6 +400,51 @@ export default function MapView({ goTo }) {
       map.setView([lat, lng], Math.max(map.getZoom(), 7), { animate: false })
     }
   }
+
+  /* ---------- EFFECT 4: EXTERNAL MAP TARGET (from AI Assistant / other pages) ---------- */
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !mapTarget) return
+
+    const { kind, id } = mapTarget
+    let targetLat = null
+    let targetLng = null
+
+    if (kind === 'person') {
+      const person = personnel.find((p) => p.id === id)
+      if (person) {
+        const spread = personPositions.get(person.id)
+        if (spread) {
+          targetLat = spread[0]
+          targetLng = spread[1]
+        } else if (hasCoords(person)) {
+          targetLat = Number(person.latitude)
+          targetLng = Number(person.longitude)
+        }
+      }
+      setShow((prev) => (prev.people ? prev : { ...prev, people: true }))
+    } else if (kind === 'site') {
+      const site = locations.find((l) => l.id === id)
+      if (site && hasCoords(site)) {
+        targetLat = Number(site.latitude)
+        targetLng = Number(site.longitude)
+      }
+      setShow((prev) => (prev.sites ? prev : { ...prev, sites: true }))
+    } else if (kind === 'incident') {
+      const inc = emergencies.find((e) => e.id === id)
+      if (inc && hasCoords(inc)) {
+        targetLat = Number(inc.latitude)
+        targetLng = Number(inc.longitude)
+      }
+      setShow((prev) => (prev.incidents ? prev : { ...prev, incidents: true }))
+    }
+
+    if (targetLat !== null && targetLng !== null) {
+      setSelected({ kind, id })
+      mapRef.current.setView([targetLat, targetLng], Math.max(mapRef.current.getZoom(), 7), {
+        animate: false,
+      })
+    }
+  }, [mapReady, mapTarget, personnel, locations, emergencies, personPositions])
 
   /* ---------- THE DETAIL PANEL CONTENTS ----------
      Every marker type is turned into the same simple shape — a title, a

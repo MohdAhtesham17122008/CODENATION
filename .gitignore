@@ -24,3 +24,5 @@ yarn-error.log*
 .idea/
 *.swp
 .claude/settings.local.json
+
+.vercel

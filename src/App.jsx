@@ -40,6 +40,7 @@ import Inventory from './pages/Inventory'
 import MapView from './pages/MapView'
 import Weather from './pages/Weather'
 import Emergency from './pages/Emergency'
+import AIChatbot from './components/AIChatbot/AIChatbot'
 
 export default function App() {
   /* Who is signed in, and what they may change. */
@@ -198,6 +199,9 @@ export default function App() {
           </ErrorBoundary>
         </main>
       </div>
+
+      {/* Floating Polar AI Operations Assistant */}
+      <AIChatbot goTo={goTo} />
     </div>
   )
 }
